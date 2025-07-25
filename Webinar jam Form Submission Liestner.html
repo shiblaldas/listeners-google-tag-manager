@@ -1,0 +1,22 @@
+<script>
+window.addEventListener("message", function(event) {
+  // Make sure the message comes from WebinarJam
+  if (event.origin !== "https://event.webinarjam.com") return;
+
+  try {
+    var data = event.data;
+
+    // Check if it's a redirect to the thank-you page
+    if (data && data.func === "redirect" && data.url && data.url.indexOf("thank-you") > -1) {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "webinar_registration_complete",
+        webinar_url: data.url
+      });
+    }
+  } catch (e) {
+    // Optional: log error
+    console.error("WebinarJam postMessage error:", e);
+  }
+});
+</script>
