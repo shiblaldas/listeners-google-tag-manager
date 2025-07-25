@@ -1,0 +1,21 @@
+<script>
+window.addEventListener("message", function(event) {
+  if (event.data.meetingBookSucceeded == true) {
+    window.dataLayer.push({
+      'event': 'hubspot_meeting_success',
+      'hs-form-guid': event.data.meetingsPayload.formGuid,
+      'hs-organizer' : event.data.meetingsPayload.bookingResponse.postResponse.organizer.name,
+      'hs-is-meeting-paid' : event.data.meetingsPayload.isPaidMeeting,
+      'hs-meeting-date' : event.data.meetingsPayload.bookingResponse.event.dateString,
+      'hs-meeting-start' : event.data.meetingsPayload.bookingResponse.postResponse.timerange.start,
+      'hs-meeting-end' : event.data.meetingsPayload.bookingResponse.postResponse.timerange.end,
+      'email': event.data.meetingsPayload.bookingResponse.postResponse.contact.email,
+      'phone': event.data.meetingsPayload.bookingResponse.postResponse.contact.phone,
+      'first_name': event.data.meetingsPayload.bookingResponse.postResponse.contact.firstName,
+      'last_name': event.data.meetingsPayload.bookingResponse.postResponse.contact.lastName,
+      'hs-duration-minutes' : event.data.meetingsPayload.bookingResponse.event.duration / 60000
+    });
+  }
+});
+</script>
+
