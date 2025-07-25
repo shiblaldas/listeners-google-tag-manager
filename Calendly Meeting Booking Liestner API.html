@@ -1,0 +1,45 @@
+<script>
+  window.addEventListener('message', function(e) {
+    if (e.data.event === 'calendly.event_scheduled') {
+      var bookingInformation = e.data.payload.invitee.uri;
+
+      var options = {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer eaENFDD......' // Replace with your own token
+        }
+      };
+
+      fetch(bookingInformation, options)
+        .then(function(response) {
+          if (!response.ok) {
+            throw new Error('HTTP error! Status: ' + response.status);
+          }
+          return response.json();
+        })
+        .then(function(data) {
+          // Push data to dataLayer
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({
+            event: 'calendlyDataReceived', // You can customize the event name
+            email: data.resource.email,
+            firstname: data.resource.first_name,
+            lastname: data.resource.last_name,
+            fullname: data.resource.name,
+            qa: data.resource.questions_and_answers,
+            phone_number: data.resource.text_reminder_number,
+            timezone: data.resource.timezone,
+            utm_source: data.resource.tracking.utm_source,
+            utm_medium: data.resource.tracking.utm_medium,
+            utm_campaign: data.resource.tracking.utm_campaign
+          });
+
+
+        })
+        .catch(function(err) {
+          console.error('Error:', err);
+        });
+    }
+  });
+</script>
