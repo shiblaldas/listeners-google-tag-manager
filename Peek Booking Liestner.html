@@ -1,0 +1,34 @@
+<script>
+window.addEventListener("message", function (event) {
+  if (event.origin !== "https://book.peek.com") return;
+
+  try {
+    var msg = JSON.parse(event.data);
+
+    // List of allowed step names (case-sensitive)
+    var allowedSteps = [
+      "Start Submission",
+      "Complete",
+      "Checkout"
+    ];
+
+    // Only push if it's trackEvent + stepName is allowed
+    if (
+      msg &&
+      msg.eventType === "trackEvent" &&
+      msg.stepName &&
+      allowedSteps.indexOf(msg.stepName) > -1
+    ) {
+      var safeStepName = msg.stepName.replace(/\s+/g, '_').toLowerCase();
+
+      dataLayer.push({
+        event: "peek_" + safeStepName,
+        peekStep: msg.stepName,
+        peekData: msg
+      });
+    }
+  } catch (err) {
+    console.warn("Invalid message from Peek:", err);
+  }
+});
+</script>
