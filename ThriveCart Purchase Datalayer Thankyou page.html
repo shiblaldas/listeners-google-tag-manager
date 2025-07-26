@@ -1,0 +1,71 @@
+<script>
+(function () {
+  /* ---------- 1. Turn the query‑string into a nested object ---------- */
+  function getTCParams() {
+    var out = {};
+    var qs  = new URLSearchParams(window.location.search);
+
+    qs.forEach(function (value, rawKey) {
+      var key = decodeURIComponent(rawKey);      // e.g. "thrivecart[order][0][p]"
+      var val = decodeURIComponent(value);       // raw value
+
+      var parts = key.split(/\[|\]/).filter(Boolean); // ["thrivecart","order","0","p"]
+      var ctx = out;
+
+      parts.forEach(function (part, idx) {
+        if (idx === parts.length - 1) {
+          // final segment → assign value
+          ctx[part] = val;
+        } else {
+          // intermediate → ensure object/array exists
+          ctx[part] = ctx[part] || ( /^\d+$/.test(parts[idx + 1]) ? [] : {} );
+          ctx = ctx[part];
+        }
+      });
+    });
+
+    return out.thrivecart ? out : null;          // null if TC params not present
+  }
+
+  var tc = getTCParams();
+  if (!tc) return;
+
+  /* ---------- 2. Deduplicate using invoice_id ---------- */
+  var oid = tc.thrivecart.invoice_id;
+  if (!oid) return;
+
+  var dedupeKey = 'tc_purchase_sent_' + oid;
+  if (sessionStorage.getItem(dedupeKey)) return;
+  sessionStorage.setItem(dedupeKey, '1');
+
+  /* ---------- 3. Build & push the GA4 purchase event ---------- */
+  var items = [];
+  (tc.thrivecart.order || []).forEach(function (row) {
+    if (!row) return;
+    items.push({
+      item_id     : row.id,
+      item_name   : row.n,
+      price       : +row.p || 0,
+      quantity    : +row.q || 1,
+      affiliation : tc.thrivecart.account_name
+    });
+  });
+
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    event: 'purchase',
+    ecommerce: {
+      transaction_id : oid,                          // now using invoice_id
+      currency       : tc.thrivecart.order_currency || 'USD',
+      value          : items.reduce(function (s, i) { return s + i.price * i.quantity; }, 0),
+      coupon         : tc.thrivecart.coupon && tc.thrivecart.coupon.code,
+      items          : items
+    },
+    customer_email   : tc.customer_email || (tc.thrivecart.customer && tc.thrivecart.customer.email),
+    tc_order_id      : tc.thrivecart.order_id,        // optional: keeping order ID separately
+    tc_payment_proc  : tc.thrivecart.payment_processor,
+    tc_hash          : tc.thrivecart_hash
+  });
+})();
+</script>
+
