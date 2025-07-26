@@ -1,0 +1,21 @@
+<script>
+window.addEventListener("message", function(event) {
+    // Ensure the message is from GoKwik and related to ShopifyAnalytics
+    if (event.origin === "https://pdp.gokwik.co" && event.data.analyticsName === "shopifyAnalytics") {
+        
+        var eventName = event.data.eventName || "gokwik_generic_event"; // Use eventName or a default
+
+        // Ensure dataLayer exists
+        window.dataLayer = window.dataLayer || [];
+
+        // Push all event data dynamically to GTM
+        window.dataLayer.push({
+            event: eventName, // GTM event name
+            eventData: event.data.data || {}, // Store all available data
+            timestamp: Date.now() // Add timestamp for analytics tracking
+        });
+
+        console.log("GTM Data Layer Event Pushed:", eventName, event.data.data);
+    }
+});
+</script>
