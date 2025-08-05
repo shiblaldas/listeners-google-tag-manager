@@ -1,0 +1,50 @@
+<script>
+window.addEventListener("message", function(event) {
+  if (
+    event.origin === "https://secured.sirvoy.com" &&
+    event.data &&
+    event.data.tracking_event &&
+    event.data.tracking_event.event === "booking_completed"
+  ) {
+    var booking = event.data.tracking_event.booking;
+
+
+    // Map room data into GA4-compatible items
+    var items = (booking.rooms || []).map(function(room) {
+      return {
+        item_name: room.RoomTypeName || "Unknown Room",
+        item_id: room.RoomId || "",
+        price: room.roomTotal || 0,
+        quantity: room.quantity || 1,
+        item_category: booking.bookedCategory || "",
+        start_date: room.arrivalDate || booking.arrivalDate,
+        end_date: room.departureDate || booking.departureDate
+      };
+    });
+
+    // Push to dataLayer
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: "purchase",
+      ecommerce: {
+        transaction_id: booking.bookingId,
+        value: booking.totalPriceIncludingSurcharges || 0,
+        currency: booking.currency || "SEK",
+        coupon: booking.couponCode,
+        items: items
+      },
+      // Custom parameters (outside of ecommerce block)
+      start_date: booking.arrivalDate,
+      end_date: booking.departureDate,
+      people: booking.totalAdults,
+      email: booking.guest.email,
+      phone: booking.guest.phone,
+      firstName: booking.guest.firstName,
+      lastName: booking.guest.lastName,
+      country: booking.guest.country,
+      city: booking.guest.city,
+      postcode: booking.guest.postcode
+    });
+  }
+});
+</script>
