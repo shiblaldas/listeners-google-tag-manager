@@ -25,7 +25,7 @@ window.addEventListener("message", function(event) {
     // Push to dataLayer
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push({
-      event: "purchase",
+      event: "sld_purchase",
       ecommerce: {
         transaction_id: booking.bookingId,
         value: booking.totalPriceIncludingSurcharges || 0,
