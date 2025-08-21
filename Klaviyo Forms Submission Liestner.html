@@ -6,8 +6,10 @@ dataLayer.push({
 'event' : 'klaviyo_form_submission',
 'form_id' : e.detail.formId,
 'form_title' : e.detail.metaData.$source,
-'form_phone_number' : e.detail.metaData.$phone_number,
-'form_email': e.detail.metaData.$email
+'first_name' : e.detail.metaData.$first_name,
+'last_name' : e.detail.metaData.$last_name, 
+'phone_number' : e.detail.metaData.$phone_number,
+'email': e.detail.metaData.$email
 });
 }
 });
