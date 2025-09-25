@@ -1,0 +1,41 @@
+<script>
+(function() {
+  window.addEventListener("message", function(e) {
+    try {
+      var data = e.data;
+      if (!data || !data.content) return;
+
+      var content = data.content;
+
+      // Check if requestMethod = GET and url contains "submit"
+      if (content.requestMethod === "GET" && content.url && content.url.indexOf("submit") > -1) {
+        var parsedContent = content.content;
+
+        // Parse JSON if it's a string
+        if (typeof parsedContent === "string") {
+          parsedContent = JSON.parse(parsedContent);
+        }
+
+        // ✅ Extra condition: submissionId must not be null
+        if (parsedContent.submissionId) {
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({
+            event: "surveySubmit",
+            requestMethod: content.requestMethod,
+            requestUrl: content.url,
+            contactId: parsedContent.contactId || null,
+            submissionId: parsedContent.submissionId,
+            surveyData: parsedContent.surveyData || {}
+          });
+
+          console.log("✅ Survey submit pushed to dataLayer:", parsedContent);
+        } else {
+          console.log("⚠️ Skipped because submissionId is null:", parsedContent);
+        }
+      }
+    } catch (err) {
+      console.error("Survey listener error:", err);
+    }
+  }, false);
+})();
+</script>
