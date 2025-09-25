@@ -1,0 +1,28 @@
+<script>
+  window.addEventListener("message", function(event) {
+    if (event.origin !== "https://calendar.joinmyhub.com") {
+      return;
+    }
+
+    if (Array.isArray(event.data) && event.data.length > 0) {
+      var userId = event.data[1]; 
+
+      if (!userId || userId !== "_ud") {
+        return;
+      }
+
+      var details = {};
+      try {
+        details = JSON.parse(event.data[2]); 
+      } catch (e) {
+        console.warn("Failed to parse details JSON:", e);
+      }
+
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "joinmyhub_form_submit",
+        customer_details: details    
+      });
+    }
+  });
+</script>
