@@ -1,0 +1,46 @@
+<script>
+window.addEventListener('message', function(event) {
+  // Only allow messages from HubSpot
+  if (event.origin !== 'https://app.hubspot.com') return;
+
+  try {
+    var eventData = JSON.parse(event.data);
+  } catch (e) {
+    console.error('Invalid HubSpot event data:', e);
+    return;
+  }
+
+  var eventAction = false;
+
+  switch (eventData.type) {
+    case 'closed-welcome-message':
+      eventAction = 'closed_chat';
+      break;
+
+    case 'open-change':
+      eventAction = eventData.data ? 'opened_chat' : 'closed_chat';
+      break;
+
+    case 'external-api-event':
+      if (eventData.data && eventData.data.eventType === 'conversationStarted') {
+        eventAction = 'started_conversation';
+      } else if (eventData.data && eventData.data.eventType === 'conversationClosed') {
+        eventAction = 'closed_conversation';
+      }
+      break;
+
+    default:
+      eventAction = false;
+      break;
+  }
+
+  if (eventAction) {
+    window.dataLayer = window.dataLayer || [];
+    dataLayer.push({
+      event: eventAction,
+      event_action: 'hubspot_chat',
+      event_label: eventData.uuid || '',
+    });
+  }
+});
+</script>
