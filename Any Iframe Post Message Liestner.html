@@ -17,7 +17,7 @@ window.addEventListener('message', function(event) {
     window.dataLayer.push({
       event: 'iframe_event',
       origin: event.origin,
-      payload: data
+      data: data
     });
 
     console.log('iframeevent pushed to dataLayer:', {
