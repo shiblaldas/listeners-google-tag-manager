@@ -1,0 +1,31 @@
+<script>
+window.addEventListener('message', function(event) {
+  // List of allowed origins
+  var allowedOrigins = [
+    'https://calendly.com'
+  ];
+
+  // Only proceed if origin is trusted
+  if (!allowedOrigins.includes(event.origin)) return;
+
+  try {
+    // Parse the message data if it's a JSON string
+    var data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+
+    // Push into GTM dataLayer
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'iframe_event',
+      origin: event.origin,
+      payload: data
+    });
+
+    console.log('iframeevent pushed to dataLayer:', {
+      origin: event.origin,
+      payload: data
+    });
+  } catch (e) {
+    console.warn('Failed to process message', e);
+  }
+});
+</script>
