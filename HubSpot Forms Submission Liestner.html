@@ -1,19 +1,37 @@
 <script>
-  window.addEventListener("message", function(event) {
-    if (event.data.type === 'hsFormCallback' && event.data.eventName === 'onFormSubmit') {
-      console.log(event.data);
-      var formData = event.data.data;
-      var formObj = formData.reduce(function(acc, curr) {
-        acc[curr.name] = curr.value;
-        return acc;
-      }, {});
-      window.dataLayer.push({
-        'event': 'hubspot-form-success',
-        'hs-form-guid': event.data.id,
-        'email': formObj.email,
-        'phone': formObj.phone,
-        'first_name': formObj.firstname,
-        'last_name': formObj.lastname
+window.dataLayer = window.dataLayer || [];
+
+//listener for older version (v3) of HS forms
+window.addEventListener('message', function(event) {
+  if (event.data.type === 'hsFormCallback' && event.data.eventName === 'onFormSubmitted') {
+    window.dataLayer.push({
+      event: 'hs_form_submission',
+      form_id: event.data.id,
+      conversion_id: event.data.data.conversionId,
+      form_data: event.data.data.submissionValues,
+    });
+  }
+});
+
+//listener for v4 HS forms 
+window.addEventListener("hs-form-event:on-submission:success", function(event) {
+    var hsform = HubspotFormsV4.getFormFromEvent(event);
+    if (hsform) {
+      hsform.getFormFieldValues().then(function(fieldValues) {
+        var transformedData = fieldValues.reduce(function(obj, item) {
+          var key = item.name.split('/')[1]; 
+          if (key) {
+            obj[key] = item.value;
+          }
+          return obj;
+        }, {});
+  
+        window.dataLayer.push({
+          event: "hs_form_submission",
+          form_id: hsform.getFormId(),
+          conversion_id: hsform.getConversionId(),
+          form_data: transformedData
+        });
       });
     }
   });
