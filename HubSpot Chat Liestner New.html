@@ -1,0 +1,57 @@
+<script>
+window.addEventListener('message', function(event) {
+  // ✅ Allow all regional HubSpot chat widget origins
+  var allowedOrigins = [
+    'https://app-eu1.hubspot.com'
+
+  ];
+
+  if (!allowedOrigins.includes(event.origin)) return;
+
+  try {
+    // ✅ HubSpot sometimes sends objects directly, not strings
+    var eventData = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+  } catch (e) {
+    console.warn('Invalid HubSpot event data:', e);
+    return;
+  }
+
+  if (!eventData || !eventData.type) return;
+
+  var eventAction = false;
+
+  // ✅ Handle chat-specific event types
+  if (eventData.type === 'external-api-event' && eventData.data && eventData.data.eventType) {
+    switch (eventData.data.eventType) {
+      case 'conversationStarted':
+        eventAction = 'started_conversation';
+        break;
+      case 'conversationClosed':
+        eventAction = 'closed_conversation';
+        break;
+      case 'contactAssociated':
+        eventAction = 'email_contact_ssubmit';
+        break;
+      case 'userInteractedWithWidget':
+        eventAction = 'opened_chat';
+        break;
+      case 'widgetClosed':
+        eventAction = 'closed_chat';
+        break;
+    }
+  }
+
+  // ✅ Push to GTM dataLayer
+  if (eventAction) {
+    window.dataLayer = window.dataLayer || [];
+    dataLayer.push({
+      event: eventAction,
+      event_action: 'hubspot_chat',
+      event_label: eventData.uuid || '',
+      event_origin: event.origin
+    });
+
+    console.log('HubSpot chat event pushed:', eventAction, event.origin);
+  }
+});
+</script>
