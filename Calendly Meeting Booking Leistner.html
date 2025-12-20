@@ -1,0 +1,63 @@
+<script>
+  (function() {
+    // Universal Analytics tracking ID whose _ga cookie to use.
+    // If using GA4, you can leave this setting untouched.
+    var trackingId = 'UA-XXXXX-Y';
+    
+    // Maximum time in milliseconds to wait for GA tracker to load.
+    // Again, irrelevant for GA4.
+    var maxGATime = 2000;
+    
+    // Set to the origin ("https://www.domain.com") of the iframe you want to communicate with
+    var childOrigin = 'https://calendly.com';
+    
+    // Don't touch anything that follows
+    var pollInterval = 200;
+    
+    var postCallback = function(event) {
+      if (event.origin !== childOrigin) return;
+      if (event.data !== 'childReady' && !event.data.event) return;
+      
+      if (event.data === 'childReady') {
+        // Send event that parent is ready
+        event.source.postMessage('parentReady', event.origin);
+
+        var pollCallback = function() {
+          // Stop polling if maxTime reached
+          maxGATime -= pollInterval;
+          if (maxGATime <= 0) window.clearInterval(poll);
+          
+          // Only proceed if GA loaded and tracker accessible
+          var ga = window[window['GoogleAnalyticsObject']];
+          if (ga && ga.getAll) {
+            // Get tracker that matches the Tracking ID you provided
+            var tracker = ga.getAll().filter(function(t) { 
+              return t.get('trackingId') === trackingId; 
+            }).shift();
+            
+            // Send message back to frame with Client ID
+            if (tracker) {
+              event.source.postMessage({
+                event: 'clientId',
+                clientId: tracker.get('clientId')
+              }, event.origin);
+            }
+            // Stop polling if not already done so
+            window.clearInterval(poll);
+          }
+        };
+        
+        // Start polling for Google Analytics tracker
+        var poll = window.setInterval(pollCallback, pollInterval)
+      }
+      
+      // Push dataLayer message from iframe to dataLayer of parent
+      if (event.data.event) {
+        window.dataLayer.push(event.data);
+      }
+    };
+    
+    // Start listening for messages from child frame
+    window.addEventListener('message', postCallback);
+  })();
+</script>
